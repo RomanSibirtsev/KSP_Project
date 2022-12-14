@@ -47,7 +47,7 @@ class Simulation(Framework):
             # print(self.world.bodies[2].linearVelocity.length)
 
         #print(self.world.bodies[2].position.length)
-        print(dir(self.world))
+        #print(dir(self.world))
         if abs(self.world.bodies[2].position[0]) < 0.12 and param == 0:
             print("1\n")
             self.world.bodies[2].linearVelocity = (-math.sqrt((self.world.bodies[2].linearVelocity.length**2 * (2 * a2 / (a1 + a2)))), 0)
