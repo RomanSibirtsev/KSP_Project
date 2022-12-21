@@ -61,7 +61,7 @@ class Simulation(Framework):
             param = 2
 
 
-r1 = 20
-r2 = 40
+a1 = 20
+a2 = 40
 param = 0
 Simulation().run()

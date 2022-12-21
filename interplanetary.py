@@ -16,7 +16,7 @@ class Simulation(Framework):
         self.G = 100
 
         # Sun
-        circle = b2FixtureDef(shape=b2CircleShape(radius=3), density=80, friction=0.5, restitution=0.5)
+        circle = b2FixtureDef(shape=b2CircleShape(radius=3), density=100, friction=0.5, restitution=0.5)
         self.world.CreateDynamicBody(type=b2_dynamicBody, position=b2Vec2(0, 0), fixtures=circle)
 
         # Earth
@@ -27,13 +27,19 @@ class Simulation(Framework):
 
         # Satellite
         circle_small = b2FixtureDef(shape=b2CircleShape(radius=0.3), density=0.01, friction=0.5, restitution=0.2)
-        V = math.sqrt(self.G * self.world.bodies[1].mass / r1) + math.sqrt(self.G * self.world.bodies[2].mass / abs(r1 - r2))
+        V = math.sqrt(self.G * self.world.bodies[1].mass / r1) + math.sqrt(self.G * self.world.bodies[2].mass / abs(r1-r2))
+        #V = math.sqrt(2 * self.G * self.world.bodies[2].mass / abs(r1 - r2)) + math.sqrt(self.G * self.world.bodies[1].mass / r1)
         self.world.CreateDynamicBody(type=b2_dynamicBody, position=b2Vec2(0, r2), fixtures=circle_small,
                                      linearVelocity=(V, 0))
+        #Mars
+        circle_small = b2FixtureDef(shape=b2CircleShape(radius=0.7), density=67, friction=0.5, restitution=0.2)
+        V = math.sqrt(self.G * self.world.bodies[1].mass / r3)
+        self.world.CreateDynamicBody(type=b2_dynamicBody, position=b2Vec2(-r3, 0), fixtures=circle_small,
+                                     linearVelocity=(0, V))
 
     def Step(self, settings):
         super(Simulation, self).Step(settings)
-        global r1, r2, T2
+        global r1, r2, T2, r3
         global maneuver_start_t
         # Simulate the Newton's gravity
         for bi in self.world.bodies[2:]:
@@ -51,43 +57,42 @@ class Simulation(Framework):
                 force = self.G * mi * mk / (r * r)
                 delta.Normalize()
                 bi.ApplyForce(force * delta, pi, True)
-
-        #   print(self.world.bodies[2].position, self.stepCount / self.settings.hz, self.world.bodies[2].linearVelocity)
-        T = 2 * math.pi * math.sqrt(abs(r1 - r2) ** 3 / (self.G * self.world.bodies[1].mass))
+        T_big = 2 * math.pi * math.sqrt(r1 ** 3 / (self.G * self.world.bodies[1].mass))
         time = self.stepCount / self.settings.hz
-        print(T)
-        '''if abs(time - T) < 0.0025:
-            print(T)
-            print(time, self.world.bodies[2].position)'''
-
-        '''if abs(time - 2 * T) < 0.0025:
-            print("START")
+        if abs(time - T_big) < 0.0025:
+            V = math.sqrt(2 * self.G * self.world.bodies[2].mass / abs(r1 - r2)) + math.sqrt(
+                self.G * self.world.bodies[1].mass / r1)
+            self.world.bodies[3].linearVelocity = (
+                V * self.world.bodies[3].linearVelocity[0] / self.world.bodies[3].linearVelocity.length,
+                V * self.world.bodies[3].linearVelocity[1] / self.world.bodies[3].linearVelocity.length
+            )
+        if time == 5:
             maneuver_start_t = time
-            V = math.sqrt((self.world.bodies[2].linearVelocity.length ** 2 * (2 * r2 / (r1 + r2))))
-            self.world.bodies[2].linearVelocity = (
-                V * self.world.bodies[2].linearVelocity[0] / self.world.bodies[2].linearVelocity.length,
-                V * self.world.bodies[2].linearVelocity[1] / self.world.bodies[2].linearVelocity.length
+            V = math.sqrt(self.G * self.world.bodies[1].mass / self.world.bodies[3].position.length)
+            self.world.bodies[3].linearVelocity = (
+                V * self.world.bodies[3].linearVelocity[0] / self.world.bodies[3].linearVelocity.length,
+                V * self.world.bodies[3].linearVelocity[1] / self.world.bodies[3].linearVelocity.length
             )
-            T2 = 2 * math.pi * math.sqrt(((r1 + r2) / 2) ** 3 / (self.G * self.world.bodies[1].mass))
-            print(T2)
-        #   print(time - maneuver_start_t - T2 / 2)
-        if abs(time - maneuver_start_t - T2 / 2) < 0.0025:
-            V = math.sqrt(self.G * self.world.bodies[1].mass / r2)
-            #   self.world.bodies[2].linearVelocity = (-V, 0)
-            self.world.bodies[2].linearVelocity = (
-                V * self.world.bodies[2].linearVelocity[0] / self.world.bodies[2].linearVelocity.length,
-                V * self.world.bodies[2].linearVelocity[1] / self.world.bodies[2].linearVelocity.length
+        if time == 6:
+            V0 = math.sqrt(self.G * self.world.bodies[1].mass / self.world.bodies[3].position.length)
+            V = math.sqrt((V0 ** 2 * (2 * (r3-5) / (self.world.bodies[3].position.length + (r3-5)))))
+            self.world.bodies[3].linearVelocity = (
+                V * self.world.bodies[3].linearVelocity[0] / self.world.bodies[3].linearVelocity.length,
+                V * self.world.bodies[3].linearVelocity[1] / self.world.bodies[3].linearVelocity.length
             )
-            print("END")'''
+            T2 = 2 * math.pi * math.sqrt(((self.world.bodies[3].position.length + r3 - 5) / 2) ** 3 / (self.G * self.world.bodies[1].mass))
 
-        #   print(self.world.bodies[2].position.length)
-
-
-
-
+        if time == 19.8:
+            orbit = self.world.bodies[3].position-self.world.bodies[4].position
+            V = math.sqrt(self.G * self.world.bodies[1].mass / r3) + math.sqrt(self.G * self.world.bodies[4].mass / abs(orbit.length))
+            self.world.bodies[3].linearVelocity = (
+                V * self.world.bodies[3].linearVelocity[0] / self.world.bodies[3].linearVelocity.length,
+                V * self.world.bodies[3].linearVelocity[1] / self.world.bodies[3].linearVelocity.length
+            )
 
 r1 = 45
-r2 = 40
+r2 = 50
+r3 = 400
 T2 = 9999
 maneuver_start_t = 0
 Simulation().run()
