@@ -24,7 +24,6 @@ class Simulation(Framework):
         V = math.sqrt(self.G * self.world.bodies[1].mass / r1)
         self.world.CreateDynamicBody(type=b2_dynamicBody, position=b2Vec2(0, 40), fixtures=circle_small,
                                      linearVelocity=(V, 0))
-
     def Step(self, settings):
         super(Simulation, self).Step(settings)
         global r1, r2, T2
@@ -48,7 +47,6 @@ class Simulation(Framework):
         T = 2 * math.pi * math.sqrt(r1 ** 3 / (self.G * self.world.bodies[1].mass))
         time = self.stepCount / self.settings.hz
         if abs(time - 2 * T) < 0.0025:
-            print("START")
             maneuver_start_t = time
             V = math.sqrt((self.world.bodies[2].linearVelocity.length ** 2 * (2 * r2 / (r1 + r2))))
             self.world.bodies[2].linearVelocity = (
