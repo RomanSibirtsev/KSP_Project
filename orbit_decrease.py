@@ -24,6 +24,15 @@ class Simulation(Framework):
         V = math.sqrt(self.G * self.world.bodies[1].mass / r1)
         self.world.CreateDynamicBody(type=b2_dynamicBody, position=b2Vec2(0, 40), fixtures=circle_small,
                                      linearVelocity=(V, 0))
+
+    def to_screen(self, X, Y):
+        x = (X * self._viewZoom) - self._viewOffset.x
+        if 0:
+            x = self.screenSize.x - x
+        y = (Y * self._viewZoom) - self._viewOffset.y
+        if 1:
+            y = self.screenSize.y - y
+        return (int(x), int(y))
     def Step(self, settings):
         super(Simulation, self).Step(settings)
         global r1, r2, T2
@@ -32,7 +41,15 @@ class Simulation(Framework):
             for bk in self.world.bodies[1:2]:
                 if bi == bk:
                     continue
+                #
+                global a
+                x, y = self.to_screen(self.world.bodies[2].position[0], self.world.bodies[2].position[1])
+                a.append([x, y])
+                for i in a:
+                    self.screen.set_at((i[0], i[1]), (255, 255, 255))
+                #print(self.world.bodies[2].position[0])
 
+                #
                 pi, pk = bi.worldCenter, bk.worldCenter
                 mi, mk = bi.mass, bk.mass
                 delta = pk - pi
@@ -65,4 +82,5 @@ r1 = 40
 r2 = 20
 T2 = 9999
 maneuver_start_t = 0
+a = []
 Simulation().run()
